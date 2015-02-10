@@ -6,10 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "mixpanel",
-    "analytics"
-  ],
+  "repository": {
+      "type": "git",
+      "url": "http://github.com/brennanMKE/mixpanel-parse.git"
+  },
+  "keywords": ["mixpanel", "analytics", "api", "stats", "parse"],
   "author": "Brennan Stehling",
   "license": "MIT",
   "devDependencies": {

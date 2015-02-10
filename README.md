@@ -1,5 +1,13 @@
-// global.Parse = require("parse-cloud").Parse;
+# Mixpanel for Parse Cloud Code
 
+The existing Node module for [mixpanel-node](https://github.com/mixpanel/mixpanel-node)
+did not working with Parse Cloud Code so I adjusted that code base to work as a 
+dependency when deployed and to also return promises for all functions so that
+they could be used like other Parse functions.
+
+## Sample Code
+
+````javascript
 var Mixpanel = require("cloud/mixpanel");
 
 var mixpanelToken = "SET_VALID_TOKEN";
@@ -24,3 +32,12 @@ mixpanel.people.set(distinctId, properties).then(function(error) {
 }, function(error) {
 	console.log(error);
 });
+````
+
+## License
+
+MIT
+
+## Author
+
+Brennan Stehling (@smallsharptools)
