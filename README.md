@@ -5,6 +5,18 @@ did not working with Parse Cloud Code so I adjusted that code base to work as a
 dependency when deployed and to also return promises for all functions so that
 they could be used like other Parse functions.
 
+## Usage
+
+Simply copy `mixpanel.js` from this Git repository into your `cloud` folder for Parse.
+To reference it use the require statement shown in the example below. You will need to
+set a valid token to work with your Mixpanel profiles.
+
+## Caveat
+
+Typically with Node.js you can use NPM to install and use modules. A directory named
+`node_modules` is created for the dependencies. It does not work this way with Parse
+so you must reference dependencies differently as described above and shown below.
+
 ## Sample Code
 
 ````javascript
