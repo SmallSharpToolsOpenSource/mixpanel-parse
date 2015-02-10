@@ -1,6 +1,6 @@
 {
   "name": "mixpanel-parse",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Mixpanel for Parse Cloud Code",
   "main": "app.js",
   "scripts": {
