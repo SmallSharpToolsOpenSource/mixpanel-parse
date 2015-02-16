@@ -94,12 +94,12 @@ var create_client = function(token, config) {
 
                 callback(e);
                 if (!e) {
-                    if (isPromiseDone) {
+                    if (!isPromiseDone) {
                         promise.resolve();
                     }
                 }
                 else {
-                    if (isPromiseDone) {
+                    if (!isPromiseDone) {
                         promise.reject(e.message);
                     }
                 }
@@ -109,7 +109,7 @@ var create_client = function(token, config) {
                 console.log("Got Error: " + e.message);
             }
             callback(e);
-            if (isPromiseDone) {
+            if (!isPromiseDone) {
                 promise.reject(e.message);
             }
         });
