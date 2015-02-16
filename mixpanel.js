@@ -39,6 +39,9 @@ var create_client = function(token, config) {
     */
     metrics.send_request = function(endpoint, data, callback) {
         var promise = new Parse.Promise();
+        var isPromiseDone = false;
+        promise.done(function() { isPromiseDone = true; });
+
         callback = callback || function() {};
         var event_data = new Buffer(JSON.stringify(data));
         var request_data = {
@@ -91,10 +94,14 @@ var create_client = function(token, config) {
 
                 callback(e);
                 if (!e) {
-                    promise.resolve();
+                    if (isPromiseDone) {
+                        promise.resolve();
+                    }
                 }
                 else {
-                    promise.reject(e);
+                    if (isPromiseDone) {
+                        promise.reject(e.message);
+                    }
                 }
             });
         }).on('error', function(e) {
@@ -102,7 +109,9 @@ var create_client = function(token, config) {
                 console.log("Got Error: " + e.message);
             }
             callback(e);
-            promise.reject(e);
+            if (isPromiseDone) {
+                promise.reject(e.message);
+            }
         });
 
         return promise;
