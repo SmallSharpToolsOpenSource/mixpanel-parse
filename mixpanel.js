@@ -9,21 +9,19 @@
     Released under the MIT license.
 */
 
-var http            = require('http'),
-    querystring     = require('querystring'),
-    Buffer          = require('buffer').Buffer;
+var Buffer = require('buffer').Buffer;
 
 var create_client = function(token, config) {
     var metrics = {};
 
-    if(!token) {
+    if (!token) {
         throw new Error("The Mixpanel Client needs a Mixpanel token: `init(token)`");
     }
 
     metrics.config = {
-        test: false,
-        debug: false,
-        verbose: false
+        test: true,
+        debug: true,
+        verbose: true
     };
 
     metrics.token = token;
@@ -40,77 +38,54 @@ var create_client = function(token, config) {
     metrics.send_request = function(endpoint, data, callback) {
         var promise = new Parse.Promise();
         var isPromiseDone = false;
-        promise.done(function() { isPromiseDone = true; });
+        promise.done(function() {
+            isPromiseDone = true;
+        });
 
         callback = callback || function() {};
-        var event_data = new Buffer(JSON.stringify(data));
-        var request_data = {
-            'data': event_data.toString('base64'),
+
+        var url = "https://api.mixpanel.com" + endpoint;
+        var buffer = new Buffer(JSON.stringify(data));
+        var params = {
+            'data': buffer.toString('base64'),
             'ip': 0,
             'verbose': metrics.config.verbose ? 1 : 0
         };
+
+        if (metrics.config.test) {
+            params.test = 1;
+        }
 
         if (endpoint === '/import') {
             var key = metrics.config.key;
             if (!key) {
                 throw new Error("The Mixpanel Client needs a Mixpanel api key when importing old events: `init(token, { key: ... })`");
             }
-            request_data.api_key = key;
+            params.api_key = key;
         }
 
-        var request_options = {
-            host: 'api.mixpanel.com',
-            headers: {}
-        };
-
-        if (metrics.config.test) { request_data.test = 1; }
-
-        var query = querystring.stringify(request_data);
-
-        request_options.path = [endpoint,"?",query].join("");
-
-        http.get(request_options, function(res) {
-            var data = "";
-            res.on('data', function(chunk) {
-               data += chunk;
-            });
-
-            res.on('end', function() {
-                var e;
-                if(metrics.config.verbose) {
-                    try {
-                        var result = JSON.parse(data);
-                        if(result.status != 1) {
-                            e = new Error("Mixpanel Server Error: " + result.error);
-                        }
-                    }
-                    catch(ex) {
-                        e = new Error("Could not parse response from Mixpanel");
-                    }
-                }
-                else {
-                    e = (data !== '1') ? new Error("Mixpanel Server Error: " + data) : undefined;
-                }
-
-                callback(e);
-                if (!e) {
-                    if (!isPromiseDone) {
-                        promise.resolve();
-                    }
-                }
-                else {
-                    if (!isPromiseDone) {
-                        promise.reject(e.message);
-                    }
-                }
-            });
-        }).on('error', function(e) {
-            if(metrics.config.debug) {
-                console.log("Got Error: " + e.message);
+        Parse.Cloud.httpRequest({
+            url: url,
+            params: params
+        }).then(function(response) {
+            if (metrics.config.verbose) {
+                console.log(response);
             }
-            callback(e);
+
+            callback(response);
+
             if (!isPromiseDone) {
-                promise.reject(e.message);
+                promise.resolve(response);
+            }
+        }, function(error) {
+            if (metrics.config.debug) {
+                console.log("Got Error: " + error);
+            }
+
+            callback(error);
+
+            if (!isPromiseDone) {
+                promise.reject(error);
             }
         });
 
@@ -140,8 +115,8 @@ var create_client = function(token, config) {
         properties.mp_lib = "node";
 
         var data = {
-            'event' : event,
-            'properties' : properties
+            'event': event,
+            'properties': properties
         };
 
         if (metrics.config.debug) {
@@ -223,7 +198,8 @@ var create_client = function(token, config) {
 
         */
         set_once: function(distinct_id, prop, to, callback) {
-            var $set = {}, data = {};
+            var $set = {},
+                data = {};
 
             if (typeof(prop) === 'object') {
                 callback = to;
@@ -232,7 +208,9 @@ var create_client = function(token, config) {
                 $set[prop] = to;
             }
 
-            return this._set(distinct_id, $set, callback, { set_once: true });
+            return this._set(distinct_id, $set, callback, {
+                set_once: true
+            });
         },
 
         /**
@@ -250,7 +228,8 @@ var create_client = function(token, config) {
                 });
         */
         set: function(distinct_id, prop, to, callback) {
-            var $set = {}, data = {};
+            var $set = {},
+                data = {};
 
             if (typeof(prop) === 'object') {
                 callback = to;
@@ -282,7 +261,7 @@ var create_client = function(token, config) {
                 delete $set.$ignore_time;
             }
 
-            if(metrics.config.debug) {
+            if (metrics.config.debug) {
                 console.log("Sending the following data to Mixpanel (Engage):");
                 console.log(data);
             }
@@ -332,7 +311,9 @@ var create_client = function(token, config) {
                     }
                 });
             } else {
-                if (!by) { by = 1; }
+                if (!by) {
+                    by = 1;
+                }
                 $add[prop] = by;
             }
 
@@ -342,7 +323,7 @@ var create_client = function(token, config) {
                 '$distinct_id': distinct_id
             };
 
-            if(metrics.config.debug) {
+            if (metrics.config.debug) {
                 console.log("Sending the following data to Mixpanel (Engage):");
                 console.log(data);
             }
@@ -384,7 +365,7 @@ var create_client = function(token, config) {
                 '$distinct_id': distinct_id
             };
 
-            if(metrics.config.debug) {
+            if (metrics.config.debug) {
                 console.log("Sending the following data to Mixpanel (Engage):");
                 console.log(data);
             }
@@ -409,7 +390,9 @@ var create_client = function(token, config) {
         track_charge: function(distinct_id, amount, properties, callback) {
             var $append = {};
 
-            if (!properties) { properties = {}; }
+            if (!properties) {
+                properties = {};
+            }
 
             if (typeof(amount) !== 'number') {
                 amount = parseFloat(amount);
@@ -429,12 +412,14 @@ var create_client = function(token, config) {
             }
 
             var data = {
-                '$append': { '$transactions': properties },
+                '$append': {
+                    '$transactions': properties
+                },
                 '$token': metrics.token,
                 '$distinct_id': distinct_id
             };
 
-            if(metrics.config.debug) {
+            if (metrics.config.debug) {
                 console.log("Sending the following data to Mixpanel (Engage):");
                 console.log(data);
             }
@@ -453,12 +438,14 @@ var create_client = function(token, config) {
         */
         clear_charges: function(distinct_id, callback) {
             var data = {
-                '$set': { '$transactions': [] },
+                '$set': {
+                    '$transactions': []
+                },
                 '$token': metrics.token,
                 '$distinct_id': distinct_id
             };
 
-            if(metrics.config.debug) {
+            if (metrics.config.debug) {
                 console.log("Clearing this user's charges:", distinct_id);
             }
 
@@ -481,7 +468,7 @@ var create_client = function(token, config) {
                 '$distinct_id': distinct_id
             };
 
-            if(metrics.config.debug) {
+            if (metrics.config.debug) {
                 console.log("Deleting the user from engage:", distinct_id);
             }
 
@@ -520,7 +507,7 @@ var create_client = function(token, config) {
                 '$distinct_id': distinct_id
             };
 
-            if(metrics.config.debug) {
+            if (metrics.config.debug) {
                 console.log("Sending the following data to Mixpanel (Engage):");
                 console.log(data);
             }

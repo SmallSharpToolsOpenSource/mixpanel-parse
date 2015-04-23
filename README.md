@@ -1,7 +1,7 @@
 # Mixpanel for Parse Cloud Code
 
 The existing Node module for [mixpanel-node](https://github.com/mixpanel/mixpanel-node)
-did not working with Parse Cloud Code so I adjusted that code base to work as a 
+did not working with Parse Cloud Code so I adjusted that code base to work as a
 dependency when deployed and to also return promises for all functions so that
 they could be used like other Parse functions.
 
@@ -19,13 +19,13 @@ so you must reference dependencies differently as described above and shown belo
 
 ## Sample Code
 
-````javascript
+```javascript
 var Mixpanel = require("cloud/mixpanel");
 
 var mixpanelToken = "SET_VALID_TOKEN";
 
 var mixpanel = Mixpanel.init(mixpanelToken);
-var distinctId = "abc123";
+var distinctId = "user123";
 
 // track an event related to a user with their distinctId
 
@@ -44,7 +44,54 @@ mixpanel.people.set(distinctId, properties).then(function(error) {
 }, function(error) {
 	console.log(error);
 });
-````
+```
+
+## Usage
+
+Place `mixpanel.js` in the `cloud` folder and load the module like is shown
+below. The sample jobs also shown below can be used to demonstrate setting
+
+```javascript
+var Mixpanel = require("cloud/mixpanel");
+
+var mixpanelToken = "SET_VALID_TOKEN";
+
+Parse.Cloud.job("updateLastUseDate", function(request, status) {
+    var mixpanel = Mixpanel.init(mixpanelToken);
+    var distinctId = "user123";
+    var properties = {
+        "lastUseDate": new Date()
+    };
+
+    mixpanel.people.set(distinctId, properties).then(function(error) {
+        console.log("person properties were set");
+        status.success("OK");
+    }, function(error) {
+        console.log(error);
+        status.error(error);
+    });
+});
+
+Parse.Cloud.job("trackActivity", function(request, status) {
+    var mixpanel = Mixpanel.init(mixpanelToken);
+    var distinctId = "user123";
+    var properties = {
+        'distinct_id' : distinctId,
+        'testing' : true,
+        'now' : new Date()
+    };
+
+    mixpanel.track('activity', properties).then(function() {
+        console.log("activity tracked");
+        status.success("OK");
+    }, function(error) {
+        console.log(error);
+        status.error(error);
+    });
+
+    mixpanel.people.set(distinctId, properties)
+});
+```
 
 ## License
 
