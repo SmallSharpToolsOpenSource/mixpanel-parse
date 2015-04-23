@@ -5,11 +5,17 @@ did not working with Parse Cloud Code so I adjusted that code base to work as a
 dependency when deployed and to also return promises for all functions so that
 they could be used like other Parse functions.
 
+The `http` module was also replaced with `Parse.Cloud.httpRequest` to make it more
+compatible with the Parse environment.
+
 ## Usage
 
 Simply copy `mixpanel.js` from this Git repository into your `cloud` folder for Parse.
 To reference it use the require statement shown in the example below. You will need to
 set a valid token to work with your Mixpanel profiles.
+
+When tracking events which are related to a user use `distinct_id` to match up
+those events with properties set with people with the same value for distinctId.
 
 ## Caveat
 
@@ -46,10 +52,7 @@ mixpanel.people.set(distinctId, properties).then(function(error) {
 });
 ```
 
-## Usage
-
-Place `mixpanel.js` in the `cloud` folder and load the module like is shown
-below. The sample jobs also shown below can be used to demonstrate setting
+## Sample Jobs
 
 ```javascript
 var Mixpanel = require("cloud/mixpanel");
